@@ -1,0 +1,317 @@
+$date
+	Tue Apr 28 14:35:10 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module alu_tb $end
+$var wire 1 ! Z $end
+$var wire 1 " V $end
+$var wire 8 # Result [7:0] $end
+$var wire 1 $ N $end
+$var reg 8 % A [7:0] $end
+$var reg 8 & B [7:0] $end
+$var reg 4 ' Opcode [3:0] $end
+$scope module dut $end
+$var wire 8 ( A [7:0] $end
+$var wire 8 ) B [7:0] $end
+$var wire 4 * Opcode [3:0] $end
+$var wire 1 + v_sub $end
+$var wire 1 , v_add $end
+$var wire 8 - res_xor [7:0] $end
+$var wire 8 . res_sub [7:0] $end
+$var wire 8 / res_rsh [7:0] $end
+$var wire 8 0 res_or [7:0] $end
+$var wire 8 1 res_mul [7:0] $end
+$var wire 8 2 res_lsh [7:0] $end
+$var wire 8 3 res_div [7:0] $end
+$var wire 8 4 res_and [7:0] $end
+$var wire 8 5 res_add [7:0] $end
+$var wire 1 ! Z $end
+$var wire 1 $ N $end
+$var parameter 4 6 ADD $end
+$var parameter 4 7 AND $end
+$var parameter 4 8 DIV $end
+$var parameter 4 9 LSH $end
+$var parameter 4 : MUL $end
+$var parameter 4 ; OR $end
+$var parameter 4 < RSH $end
+$var parameter 4 = SUB $end
+$var parameter 32 > WIDTH $end
+$var parameter 4 ? XOR $end
+$var reg 8 @ Result [7:0] $end
+$var reg 1 " V $end
+$scope module add_sub_inst $end
+$var wire 8 A a [7:0] $end
+$var wire 8 B b [7:0] $end
+$var wire 1 , v_add $end
+$var wire 1 + v_sub $end
+$var wire 8 C out_sub [7:0] $end
+$var wire 8 D out_add [7:0] $end
+$var parameter 32 E WIDTH $end
+$upscope $end
+$scope module lu_inst $end
+$var wire 8 F a [7:0] $end
+$var wire 8 G b [7:0] $end
+$var wire 8 H out_and [7:0] $end
+$var wire 8 I out_or [7:0] $end
+$var wire 8 J out_xor [7:0] $end
+$var parameter 32 K WIDTH $end
+$upscope $end
+$scope module md_inst $end
+$var wire 8 L a [7:0] $end
+$var wire 8 M b [7:0] $end
+$var wire 8 N out_mul [7:0] $end
+$var parameter 32 O WIDTH $end
+$var reg 8 P out_div [7:0] $end
+$upscope $end
+$scope module sh_inst $end
+$var wire 8 Q a [7:0] $end
+$var wire 3 R shift_val [2:0] $end
+$var wire 8 S out_rsh [7:0] $end
+$var wire 8 T out_lsh [7:0] $end
+$var parameter 32 U WIDTH $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b1000 U
+b1000 O
+b1000 K
+b1000 E
+b110 ?
+b1000 >
+b1 =
+b1000 <
+b101 ;
+b10 :
+b111 9
+b11 8
+b100 7
+b0 6
+$end
+#0
+$dumpvars
+b111100 T
+b11 S
+b10 R
+b1111 Q
+b1 P
+b10010110 N
+b1010 M
+b1111 L
+b101 J
+b1111 I
+b1010 H
+b1010 G
+b1111 F
+b11001 D
+b101 C
+b1010 B
+b1111 A
+b11001 @
+b11001 5
+b1010 4
+b1 3
+b111100 2
+b10010110 1
+b1111 0
+b11 /
+b101 .
+b101 -
+0,
+0+
+b0 *
+b1010 )
+b1111 (
+b0 '
+b1010 &
+b1111 %
+0$
+b11001 #
+0"
+0!
+$end
+#10000
+1$
+b100 R
+b0 4
+b0 H
+b11110 0
+b11110 I
+b11110 -
+b11110 J
+b0 3
+b0 P
+b11110110 #
+b11110110 @
+b1 '
+b1 *
+b10100 &
+b10100 )
+b10100 B
+b10100 G
+b10100 M
+b11110 5
+b11110 D
+b11110110 .
+b11110110 C
+b11001000 1
+b11001000 N
+b10100000 2
+b10100000 T
+b0 /
+b0 S
+b1010 %
+b1010 (
+b1010 A
+b1010 F
+b1010 L
+b1010 Q
+#20000
+0$
+b100 4
+b100 H
+b101 0
+b101 I
+b1 -
+b1 J
+b1 3
+b1 P
+b10100 #
+b10100 @
+b10 '
+b10 *
+b100 &
+b100 )
+b100 B
+b100 G
+b100 M
+b1001 5
+b1001 D
+b1 .
+b1 C
+b10100 1
+b10100 N
+b1010000 2
+b1010000 T
+b101 %
+b101 (
+b101 A
+b101 F
+b101 L
+b101 Q
+#30000
+0+
+0,
+1$
+b10 R
+b10100000 4
+b10100000 H
+b11111010 0
+b11111010 I
+b1011010 -
+b1011010 J
+b10100000 #
+b10100000 @
+b100 '
+b100 *
+b10101010 &
+b10101010 )
+b10101010 B
+b10101010 G
+b10101010 M
+b10011010 5
+b10011010 D
+b1000110 .
+b1000110 C
+b1100000 1
+b1100000 N
+b11000000 2
+b11000000 T
+b111100 /
+b111100 S
+b11110000 %
+b11110000 (
+b11110000 A
+b11110000 F
+b11110000 L
+b11110000 Q
+#40000
+0$
+b10 4
+b10 H
+b1111 0
+b1111 I
+b1101 -
+b1101 J
+b111 3
+b111 P
+b111100 #
+b111100 @
+b111 '
+b111 *
+b10 &
+b10 )
+b10 B
+b10 G
+b10 M
+b10001 5
+b10001 D
+b1101 .
+b1101 C
+b11110 1
+b11110 N
+b111100 2
+b111100 T
+b11 /
+b11 S
+b1111 %
+b1111 (
+b1111 A
+b1111 F
+b1111 L
+b1111 Q
+#50000
+1,
+b100 R
+b1100100 4
+b1100100 H
+b1100100 0
+b1100100 I
+b0 -
+b0 J
+b1 3
+b1 P
+1!
+b0 #
+b0 @
+b1 '
+b1 *
+b1100100 &
+b1100100 )
+b1100100 B
+b1100100 G
+b1100100 M
+b11001000 5
+b11001000 D
+b0 .
+b0 C
+b10000 1
+b10000 N
+b1000000 2
+b1000000 T
+b110 /
+b110 S
+b1100100 %
+b1100100 (
+b1100100 A
+b1100100 F
+b1100100 L
+b1100100 Q
+#60000
