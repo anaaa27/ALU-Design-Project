@@ -1,50 +1,20 @@
-//--------------------------------------------------------------------------
-// Design Name: ALU Top Level
-// File Name: alu_top.sv
-// Description: Conectează toate sub-modulele și selectează ieșirea
-//--------------------------------------------------------------------------
 `timescale 1ns/1ps
 
 module alu_top #(parameter WIDTH = 8) (
+    input  logic             clk,
+    input  logic             reset_n,
+    input  logic             start,
     input  logic [WIDTH-1:0] A,
     input  logic [WIDTH-1:0] B,
     input  logic [3:0]       Opcode,
+    
     output logic [WIDTH-1:0] Result,
-    output logic             Z, // Flag Zero
-    output logic             N, // Flag Negativ
-    output logic             V  // Flag Overflow
+    output logic             Z, 
+    output logic             N, 
+    output logic             V, 
+    output logic             done
 );
 
-    // 1. Declarăm "fire" interne pentru a prinde ieșirile din modulele mici
-    logic [WIDTH-1:0] res_and, res_or, res_xor;
-    logic [WIDTH-1:0] res_lsh, res_rsh;
-    logic [WIDTH-1:0] res_add, res_sub;
-    logic             v_add, v_sub;
-    logic [WIDTH-1:0] res_mul, res_div;
-
-    // 2. Instanțiem piesele de Lego
-    logic_unit #(WIDTH) lu_inst (
-        .a(A), .b(B),
-        .out_and(res_and), .out_or(res_or), .out_xor(res_xor)
-    );
-
-    shifter #(WIDTH) sh_inst (
-        .a(A), .shift_val(B[2:0]),
-        .out_lsh(res_lsh), .out_rsh(res_rsh)
-    );
-
-    adder_subtractor #(WIDTH) add_sub_inst (
-        .a(A), .b(B),
-        .out_add(res_add), .out_sub(res_sub),
-        .v_add(v_add), .v_sub(v_sub)
-    );
-
-    mul_div #(WIDTH) md_inst (
-        .a(A), .b(B),
-        .out_mul(res_mul), .out_div(res_div)
-    );
-
-    // 3. Definim comenzile pentru claritate
     localparam ADD = 4'b0000;
     localparam SUB = 4'b0001;
     localparam MUL = 4'b0010;
@@ -55,26 +25,92 @@ module alu_top #(parameter WIDTH = 8) (
     localparam LSH = 4'b0111;
     localparam RSH = 4'b1000;
 
-    // 4. MUX Gigantic: Alege rezultatul în funcție de Opcode
-    always_comb begin
-        V = 1'b0; // Default: fără depășire
+    logic [WIDTH:0]   add_out, sub_out; 
+    logic [15:0]      mul_out, div_out; 
+    logic [WIDTH-1:0] ls_and, ls_or, ls_xor, ls_lsh, ls_rsh;
+    
+    logic mul_done, div_done;
+    logic start_mul, start_div;
 
-        case (Opcode)
-            ADD: begin Result = res_add; V = v_add; end
-            SUB: begin Result = res_sub; V = v_sub; end
-            MUL: begin Result = res_mul; end
-            DIV: begin Result = res_div; end
-            AND: begin Result = res_and; end
-            OR:  begin Result = res_or;  end
-            XOR: begin Result = res_xor; end
-            LSH: begin Result = res_lsh; end
-            RSH: begin Result = res_rsh; end
-            default: Result = '0;
+    // --- Sub-module ---
+    adder #(.WIDTH(WIDTH)) u_add (.a(A), .b(B), .cin(1'b0), .en(1'b1), .sum(add_out));
+    subtractor #(.WIDTH(WIDTH)) u_sub (.a(A), .b(B), .en(1'b1), .o(sub_out));
+    multiplier u_mul (.clk(clk), .reset_n(reset_n), .start(start_mul), .a(A), .b(B), .o(mul_out), .done(mul_done));
+    divider u_div (.clk(clk), .reset_n(reset_n), .start(start_div), .a(A), .b(B), .o(div_out), .done(div_done));
+    
+    logic_shift_unit #(.WIDTH(WIDTH)) u_ls (
+        .a(A), .b(B),
+        .out_and(ls_and), .out_or(ls_or), .out_xor(ls_xor),
+        .out_lsh(ls_lsh), .out_rsh(ls_rsh)
+    );
+
+    // --- FSM ---
+    typedef enum logic [1:0] {IDLE, BUSY_MUL, BUSY_DIV, FINISH} state_t;
+    state_t state, next_state;
+
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) state <= IDLE;
+        else          state <= next_state;
+    end
+
+    always_comb begin
+        next_state = state;
+        start_mul = 1'b0;
+        start_div = 1'b0;
+        done = 1'b0;
+
+        case (state)
+            IDLE: begin
+                if (start) begin
+                    if (Opcode == MUL) begin
+                        start_mul = 1'b1;
+                        next_state = BUSY_MUL;
+                    end else if (Opcode == DIV) begin
+                        start_div = 1'b1;
+                        next_state = BUSY_DIV;
+                    end else begin
+                        next_state = FINISH; 
+                    end
+                end
+            end
+            BUSY_MUL: if (mul_done) next_state = FINISH;
+            BUSY_DIV: if (div_done) next_state = FINISH;
+            FINISH: begin
+                done = 1'b1;
+                next_state = IDLE;
+            end
         endcase
     end
 
-    // 5. Calculăm Flag-urile Z și N la final
-    assign Z = (Result == '0);     // 1 dacă toți biții sunt 0
-    assign N = Result[WIDTH-1];    // Fix ultimul bit din stânga (bitul de semn)
+    // --- Salvare Securizata a Rezultatului ---
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            Result <= '0;
+            V <= 1'b0;
+        end else begin
+            // Operatii Instantanee (se salveaza cand FSM-ul pleaca din IDLE)
+            if (state == IDLE && start) begin
+                if (Opcode == ADD) begin Result <= add_out[7:0]; V <= (~A[7] & ~B[7] & add_out[7]) | (A[7] & B[7] & ~add_out[7]); end
+                else if (Opcode == SUB) begin Result <= sub_out[7:0]; V <= (~A[7] & B[7] & sub_out[7]) | (A[7] & ~B[7] & ~sub_out[7]); end
+                else if (Opcode == AND) begin Result <= ls_and; V <= 0; end
+                else if (Opcode == OR)  begin Result <= ls_or; V <= 0; end
+                else if (Opcode == XOR) begin Result <= ls_xor; V <= 0; end
+                else if (Opcode == LSH) begin Result <= ls_lsh; V <= 0; end
+                else if (Opcode == RSH) begin Result <= ls_rsh; V <= 0; end
+            end
+            // Operatii Secventiale (se salveaza exact in fractiunea de secunda in care sunt gata)
+            else if (state == BUSY_MUL && mul_done) begin
+                Result <= mul_out[7:0];
+                V <= 1'b0;
+            end
+            else if (state == BUSY_DIV && div_done) begin
+                Result <= div_out[15:8];
+                V <= 1'b0;
+            end
+        end
+    end
+
+    assign Z = (Result == 8'h00) ? 1'b1 : 1'b0;
+    assign N = Result[7];
 
 endmodule
